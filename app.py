@@ -1,17 +1,24 @@
-import os
-import subprocess
-from http.server import SimpleHTTPRequestHandler, HTTPServer
+from flask import Flask
 import threading
+import subprocess
+import os
+import time
 
-EARNFM_TOKEN = os.getenv("EARNFM_TOKEN", "adc9585e-dc61-44dd-8f39-3ee7bf03524b")
+EARNFM_TOKEN = os.getenv("EARNFM_TOKEN")
+
+app = Flask(__name__)
 
 def run_earnfm():
-    subprocess.Popen(["earnfm-client"], env={"EARNFM_TOKEN": EARNFM_TOKEN})
+    # اجرای فایل پایتون
+    subprocess.Popen(["python3", "earnfm.py"], env={"EARNFM_TOKEN": EARNFM_TOKEN})
+    while True:
+        time.sleep(60)
 
-def run_keepalive():
-    server = HTTPServer(("0.0.0.0", 8080), SimpleHTTPRequestHandler)
-    server.serve_forever()
+@app.route("/")
+def home():
+    return "Service is running!"
 
 if __name__ == "__main__":
-    threading.Thread(target=run_earnfm, daemon=True).start()
-    run_keepalive()
+    t = threading.Thread(target=run_earnfm)
+    t.start()
+    app.run(host="0.0.0.0", port=10000)
